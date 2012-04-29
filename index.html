@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <title>Karma Chameleon</title>
+        <meta name="keywords" content="Karma Chameleon" />
+        <meta name="description" content="" />
+
+        <link rel="stylesheet" href="/stylesheets/karma.chameleon.css" type="text/css">
+        <script type="text/javascript" src="/javascripts/jquery/jquery-1.5.2.min.js"></script>
+        <script type="text/javascript" src="/javascripts/neon/neon.js"></script>
+        <script type="text/javascript" src="/javascripts/neon/customEvent.js"></script>
+        <script type="text/javascript" src="/javascripts/neon/customEventSupport.js"></script>
+        <script type="text/javascript" src="/javascripts/utils/color.js"></script>
+        <script type="text/javascript" src="/javascripts/utils/underscore.js"></script>
+        <script type="text/javascript" src="/javascripts/karma/karma.js"></script>
+        <script type="text/javascript" src="/javascripts/karma/chameleon.js"></script>
+        <script type="text/javascript" src="/javascripts/karma/rule.js"></script>
+
+        <script type="text/javascript">
+            $(function() {
+                var karma = new Karma.Chameleon();
+                var base  = karma.addBaseRule();
+                var rule1 = karma.addRule({ rule : 'complementary', target : base, name : 'rule1' });
+                var rule2 = karma.addRule({ rule : 'obscureBy', args : [10], target : rule1, name : 'rule2' });
+                var rule3 = karma.addRule({ rule : 'rotateBy', args : [30], target : rule2, name : 'rule3' });
+                var rule4 = karma.addRule({ rule : 'rotateBy', args : [60], target : rule2, name : 'rule4' });
+
+                var changeColor = function(rule) {
+                    rule.bind('colorChanged', function(data) {
+                        $('.' + rule.name).css('background-color', data.color.toHTML());
+                    });
+                };
+
+                changeColor(base);
+                changeColor(rule1);
+                changeColor(rule2);
+                changeColor(rule3);
+                changeColor(rule4);
+
+                var createRandomColor = function() {
+                    var color = "#";
+                    for(var i = 0; i < 3; i++) {
+                        var component = Math.round(Math.random() * 255).toString(16);
+                        if(component.length == 1) {
+                            component = "0" + component;
+                        }
+                        color = color + component;
+                    }
+                    return color;
+                };
+
+                var randomColor = createRandomColor();
+                base.setColor(randomColor);
+
+                var addControl = function(rule) {
+                    $('.' + rule.name).find('.controls').remove();
+                    $('.' + rule.name).append(createControls(rule));
+                };
+
+                var createControls = function(rule) {
+                    var controls = $('<div class="controls"></div>');
+                    controls.append(rule.target.name);
+
+                    var select = $('<select></select>').appendTo(controls);
+                    select.append($('<option value="complementary">complementary</option>'));
+                    select.append($('<option value="obscureBy">obscureBy</option>'));
+                    select.append($('<option value="iluminateBy">iluminateBy</option>'));
+                    select.append($('<option value="rotateBy">rotateBy</option>'));
+                    select.val(rule.rule);
+
+                    select.bind('change', function() {
+                        rule.setRule({
+                            rule   : select.val(),
+                            target : rule.target,
+                            args   : rule.getArgsFor(select.val())
+                        });
+                        addControl(rule);
+                        base.refresh();
+                    });
+
+                    if(rule.args) {
+                        var args = $('<div class="args"></div>').appendTo(controls);
+                        for(var i = 0; i < rule.args.length; i++) {
+                            var input = $('<input type="text"/>').val(rule.args[i]);
+                            args.append(input);
+
+                            input.bind('change', function() {
+                                var arguments = _.map(controls.find('.args input'), function(field) {
+                                    return $(field).val();
+                                });
+                                rule.setRule({
+                                    rule   : rule.rule,
+                                    target : rule.target,
+                                    args   :arguments
+                                });
+                                base.refresh();
+                            });
+                        }
+                    }
+
+                    $('.' + rule.name).append(controls);
+                };
+
+                addControl(rule1);
+                addControl(rule2);
+                addControl(rule3);
+                addControl(rule4);
+            });
+        </script>
+    </head>
+    <body>
+        <h1 class="karma">
+            Karma Chameleon
+        </h1>
+        <div class="color-container base"></div>
+        <div class="color-container rule1"></div>
+        <div class="color-container rule2"></div>
+        <div class="color-container rule3"></div>
+        <div class="color-container rule4"></div>
+    </body>
+</html>
