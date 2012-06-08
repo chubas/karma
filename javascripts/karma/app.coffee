@@ -39,11 +39,10 @@ $ ->
         if rule.args
             argsInput = $('<div class="args"></div>').appendTo(controls)
             for arg in rule.args
-                input = $('<input type="text"/>').val arg
-                argsInput.append input
-                input.bind 'change', ->
-                    ruleArguments = (parseInt $(field).val(), 10 for field in controls.find('.args input'))
-                    rule.setRule rule: rule.rule, target: rule.target, args: ruleArguments
+                selector = new Karma.UI.NumericSelector(value: arg)
+                selector.renderIn(argsInput)
+                selector.bind 'change', (data) ->
+                    rule.setRule rule: rule.rule, target: rule.target, args: [data.value]
                     base.refresh()
 
         $(".#{rule.name}").append controls

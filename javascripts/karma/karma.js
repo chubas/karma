@@ -1,1 +1,2 @@
 Karma = {};
+Karma.UI = {};
