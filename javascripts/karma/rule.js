@@ -9,6 +9,7 @@ Karma.Rule = new Class(Karma, 'Rule').includes(CustomEventSupport)({
         },
 
         setColor : function(color) {
+            console.log(this.name, " being set ", new Color(color).toHTML());
             this.currentColor = color;
             this.dispatch('colorChanged', { color : new Color(color) });
         },
@@ -44,7 +45,10 @@ Karma.Rule = new Class(Karma, 'Rule').includes(CustomEventSupport)({
         },
 
         _applyRule : function(rule, color, args) {
-            return color[rule].apply(color, args);
+            console.log("Calling ", rule, " on ", this.name, " (", color.toHTML(), ") with ", args);
+            var result = color[rule].apply(color, args);
+            console.log(result.toHTML());
+            return result;
         }
     }
 });
