@@ -24,7 +24,6 @@ $ ->
     createControls = (rule) ->
         controls = $('<div class="controls"></div>')
         targetHandler = $('<div class="rule_name_handler"></div>').text(rule.target.name).appendTo(controls)
-        targetHandler.draggable()
 
         select = $('<select></select>').appendTo(controls)
         select.append $('<option value="complementary">complementary</option>')
