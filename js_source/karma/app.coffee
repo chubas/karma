@@ -69,7 +69,3 @@ $ ->
         base.setColor data.color
 
     colorPicker.renderIn baseColorPicker
-
-    $('.color-container').droppable(
-      activeState: 'active'
-    )

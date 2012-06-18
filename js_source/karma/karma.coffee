@@ -1,2 +1,3 @@
-window.Karma = {}
-window.Karma.UI = {}
+exports = this
+this.Karma = {}
+this.Karma.UI = {}
