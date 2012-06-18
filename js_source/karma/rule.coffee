@@ -2,8 +2,7 @@ Karma.Rule = new Class(Karma, 'Rule').includes(CustomEventSupport)({
   prototype:
     currentColor: null,
 
-    init: (params) ->
-      params ||= {}
+    init: (params = {}) ->
       this.name = params.name
 
     setColor: (color) ->
