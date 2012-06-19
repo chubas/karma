@@ -10,7 +10,9 @@ Karma Chameleon is a color palette builder, built on flexibility to choose the c
 ## Usage
 
 To compile coffeescript files, run
+
     coffee -w -co javascripts/ js_source/
 
 To use it you'll probably need a webserver, a simple python HTTP server will do
+
     python -m SimpleHTTPServer
