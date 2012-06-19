@@ -1,3 +1,2 @@
-exports = this
-this.Karma = {}
-this.Karma.UI = {}
+Karma = {}
+Karma.UI = {}
