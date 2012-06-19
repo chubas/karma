@@ -15,10 +15,23 @@ require '../js_source/karma/chameleon'
 require '../js_source/karma/rule'
 require '../js_source/karma/colorPicker'
 
-chameleon = new Karma.Chameleon()
-base = chameleon.addBaseRule()
+require '../javascripts/tellurium/tellurium.js'
 
-base.bind 'colorChanged', (data) ->
-  console.log "Color changed to #{data.color.toHTML()}"
+Tellurium.suite('Karma.Chameleon') ->
 
-base.setColor '#009933'
+  this.describe('Creating an initial rule') ->
+
+    this.specify('It should have a baseRule property') ->
+      chameleon = new Karma.Chameleon()
+      this.assert(chameleon.baseRule).not().toBe(null)
+      this.completed()
+
+Tellurium.run()
+
+#chameleon = new Karma.Chameleon()
+#base = chameleon.addBaseRule()
+#
+#base.bind 'colorChanged', (data) ->
+#  console.log "Color changed to #{data.color.toHTML()}"
+#
+#base.setColor '#009933'
