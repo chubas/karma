@@ -1,14 +1,24 @@
 # Tried with normal require, with requirejs. I guess I should stop trying random things...
 
-requirejs = require 'requirejs'
+{ Neon } = require '../javascripts/neon/neon.js'
+global['Class'] = Neon.Class
+global['Module'] = Neon.Class
 
-requirejs.config({
-    nodeRequire: require
-});
+require '../javascripts/neon/customEvent.js'
+require '../javascripts/neon/customEventSupport.js'
 
-requirejs '../javascripts/neon/neon.js'
+require '../javascripts/utils/color.js'
 
-requirejs '../js_source/karma/karma'
-requirejs '../js_source/karma/chameleon'
+global['Karma'] = {}
 
-chameleon = new Karma.Chameleon() # This doesn't work...
+require '../js_source/karma/chameleon'
+require '../js_source/karma/rule'
+require '../js_source/karma/colorPicker'
+
+chameleon = new Karma.Chameleon()
+base = chameleon.addBaseRule()
+
+base.bind 'colorChanged', (data) ->
+  console.log "Color changed to #{data.color.toHTML()}"
+
+base.setColor '#009933'
