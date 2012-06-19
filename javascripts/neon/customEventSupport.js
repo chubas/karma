@@ -1,157 +1,154 @@
 CustomEventSupport = Module('CustomEventSupport')({
     eventListeners : null,
-    bind : function(type, eventHandler){
-        var found;
+    bind           : function(type, eventHandler) {
+        var found, eventListeners;
 
-        if(!this.eventListeners){
+        if (!this.hasOwnProperty('eventListeners')) {
             this.eventListeners = {};
         }
 
-        if(!this.eventListeners[type]){
+        if (!this.eventListeners[type]) {
             this.eventListeners[type] = [];
         }
 
-        found  = false;
+        found = false;
 
-        $(this.eventListeners[type]).each(function(i){
-            if(this == eventHandler){
+        eventListeners = this.eventListeners[type];
+
+        for (var i = 0; i < eventListeners.length; i++) {
+            if (eventListeners[i] == eventHandler) {
                 found = true;
-                return false;
+                break;
             }
-        });
+        }
 
-        if(!found){
+        if (!found) {
             this.eventListeners[type].push(eventHandler);
         }
 
         return this;
     },
-    unbind : function(type, eventHandler){
-        var i, found;
+    unbind         : function(type, eventHandler) {
+        var i, found, eventListeners;
 
-        found  = false;
-        i      = 0;
+        found = false;
 
-        if(!this.eventListeners){
+        if (!this.eventListeners) {
             this.eventListeners = {};
         }
 
-        if(typeof eventHandler == 'undefined'){
+        if (typeof eventHandler == 'undefined') {
             this.eventListeners[type] = [];
         }
 
-        $.each(this.eventListeners[type] || [], function(counter){
-            if(this == eventHandler){
-                i = counter;
+        for (i = 0; i < eventListeners.length; i++) {
+            if (eventListeners[i] == eventHandler) {
                 found = true;
-                return false;
+                break;
             }
-        });
+        }
 
-        if(found){
+        if (found) {
             this.eventListeners[type].splice(i, 1);
         }
 
         return this;
     },
-    dispatch : function(type, data){
-        var event, listeners, that, allowDefault;
+    dispatch       : function(type, data) {
+        var event, listeners, allowDefault;
 
-        if(!this.eventListeners){
+        if (!this.eventListeners) {
             this.eventListeners = {};
         }
 
-        event         = new CustomEvent(type, data);
-        event.target  = this;
-        listeners     = this.eventListeners[type] || [];
-        that          = this;
-        allowDefault  = true;
-        $(listeners).each(function(){
-            this.apply(that, [event]);
-            if(event.areImmediateHandlersPrevented){
-                return false;
+        event = new CustomEvent(type, data);
+        event.target = this;
+        listeners = this.eventListeners[type] || [];
+        allowDefault = true;
+
+        for (var i = 0; i < listeners.length; i++) {
+            listeners[i].call(this, event);
+            if (event.areImmediateHandlersPrevented) {
+                break;
             }
-        });
+        }
 
         return event;
     },
-    prototype : {
+    prototype      : {
         eventListeners : null,
-        bind : function(type, eventHandler){
+        bind           : function(type, eventHandler) {
             var found;
 
-            if(!this.eventListeners){
+            if (!this.eventListeners) {
                 this.eventListeners = {};
             }
 
-            if(!this.eventListeners[type]){
+            if (!this.eventListeners[type]) {
                 this.eventListeners[type] = [];
             }
 
-            found  = false;
+            found = false;
 
-            $(this.eventListeners[type]).each(function(i){
-                if(this == eventHandler){
+            for (var i = 0; i < this.eventListeners.length; i++) {
+                if (this.eventListeners[i] == eventHandler) {
                     found = true;
-                    return false;
+                    break;
                 }
-            });
+            }
 
-            if(!found){
+            if (!found) {
                 this.eventListeners[type].push(eventHandler);
             }
 
             return this;
         },
-        unbind : function(type, eventHandler){
-            var i, found;
+        unbind         : function(type, eventHandler) {
+            var i, found, eventListeners;
 
-            found  = false;
-            i      = 0;
+            found = false;
 
-            if(!this.eventListeners){
+            if (!this.eventListeners) {
                 this.eventListeners = {};
             }
 
-            if(typeof eventHandler == 'undefined'){
+            if (typeof eventHandler == 'undefined') {
                 this.eventListeners[type] = [];
             }
 
-            $.each(this.eventListeners[type] || [], function(counter){
-                if(this == eventHandler){
-                    i = counter;
+            for (i = 0; i < eventListeners.length; i++) {
+                if (eventListeners[i] == eventHandler) {
                     found = true;
-                    return false;
+                    break;
                 }
-            });
+            }
 
-            if(found){
+            if (found) {
                 this.eventListeners[type].splice(i, 1);
             }
 
             return this;
         },
-        dispatch : function(type, data){
-            var event, listeners, that, allowDefault;
+        dispatch       : function(type, data) {
+            var event, listeners, allowDefault;
 
-            if(!this.eventListeners){
+            if (!this.eventListeners) {
                 this.eventListeners = {};
             }
 
-            event         = new CustomEvent(type, data);
-            event.target  = this;
-            listeners     = this.eventListeners[type] || [];
-            that          = this;
-            allowDefault  = true;
-            $(listeners).each(function(){
-                this.apply(that, [event]);
-                if(event.areImmediateHandlersPrevented){
-                    return false;
+            event = new CustomEvent(type, data);
+            event.target = this;
+            listeners = this.eventListeners[type] || [];
+            allowDefault = true;
+
+            for (var i = 0; i < listeners.length; i++) {
+                listeners[i].call(this, event);
+                if (event.areImmediateHandlersPrevented) {
+                    break;
                 }
-            });
+            }
 
             return event;
         }
     }
 });
-

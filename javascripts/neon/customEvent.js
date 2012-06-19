@@ -1,30 +1,35 @@
 Class('CustomEvent')({
-    bubbles   : true,
-    cancelable : true,
-    currentTarget : null,
-    timesStamp : 0,
-    target    : null,
-    type      : '',
-    isPropagationStopped : false,
-    isDefaultPrevented : false,
+    bubbles                       : true,
+    cancelable                    : true,
+    currentTarget                 : null,
+    timesStamp                    : 0,
+    target                        : null,
+    type                          : '',
+    isPropagationStopped          : false,
+    isDefaultPrevented            : false,
     isImmediatePropagationStopped : false,
     areImmediateHandlersPrevented : false,
-    prototype : {
-        init : function (type, data) {
+    prototype                     : {
+        init                     : function(type, data) {
+            var property;
             this.type = type;
-            $.extend(this, data);
+            for (property in data) {
+                if (data.hasOwnProperty(property)) {
+                    this[property] = data[property];
+                }
+            }
         },
-        stopPropagation : function () {
+        stopPropagation          : function() {
             this.isPropagationStopped = true;
         },
-        preventDefault : function () {
+        preventDefault           : function() {
             this.isDefaultPrevented = true;
         },
-        stopImmediatePropagation : function () {
-            this.preventImmediateHandlers();
+        stopImmediatePropagation : function() {
+            this.stopImmediateHandlers();
             this.stopPropagation();
         },
-        preventImmediateHandlers : function () {
+        preventImmediateHandlers : function() {
             this.areImmediateHandlersPrevented = true;
         }
     }
