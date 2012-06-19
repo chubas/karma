@@ -1,3 +1,24 @@
+(function (global){
+
+var Module, Class, Interface;
+/* Loads Neon, there should be a better way */
+if(typeof require !== 'undefined'){
+    var Neon = require('../neon/neon.js').Neon;
+
+    Module = Neon.Module;
+    Class = Neon.Class;
+    Interface = Neon.Interface;
+
+    /* Hack to allow Firebug Reporter to Work, need to create a new Reporter for Node */
+    console.group = function () {};
+    console.groupEnd = function () {};
+    console.groupCollapsed = function () {};
+}else{
+    Module = global.Module;
+    Class = global.Class;
+    Interface = global.Interface;
+}
+
 var Te = Module('Tellurium')({
     children          : [],
     completedChildren : [],
@@ -129,7 +150,6 @@ Class(Tellurium, 'Spy')({
         methodName     : null,
         spyMethod      : null,
         originalMethod : null,
-        objectHasMethod : null,
         called         : null,
         init           : function (config) {
             config = config || {};
@@ -142,25 +162,11 @@ Class(Tellurium, 'Spy')({
             var spy;
 
             spy = this;
-            if (this.targetObject.hasOwnProperty(this.methodName) === false) {
-                this.objectHasMethod = false;
-            }
-            else {
-                this.objectHasMethod = true;
-            }
-
             this.originalMethod = this.targetObject[this.methodName];
-
             this.targetObject[this.methodName] = function () {
                 var args, result;
                 args = Array.prototype.slice.call(arguments, 0, arguments.length);
-                var scope = this;
-
-                if (this === spy) {
-                    scope = spy.targetObject;
-                }
-
-                result = spy.originalMethod.apply(scope, args);
+                result = spy.originalMethod.apply(spy.targetObject, args);
                 spy.called.push({
                     arguments : args,
                     returned : result
@@ -170,12 +176,7 @@ Class(Tellurium, 'Spy')({
             return this;
         },
         removeSpy      : function () {
-            if (this.objectHasMethod === true) {
-                this.targetObject[this.methodName] = this.originalMethod;
-            }
-            else {
-                delete this.targetObject[this.methodName];
-            }
+            this.targetObject[this.methodName] = this.originalMethod;
             return this;
         },
         on             : function (targetObject) {
@@ -232,15 +233,10 @@ Class(Tellurium, 'Assertion')({
         spec              : null,
         status            : null,
         type              : null,
-        label             : null,
         init              : function (actual, spec) {
             this.type   = this.TYPE_TRUE;
             this.actual = actual;
             this.spec   = spec;
-        },
-        withLabel         : function (label) {
-            this.label = label;
-            return this;
         },
         not               : function () {
             this.type = this.TYPE_FALSE;
@@ -275,7 +271,7 @@ Class(Tellurium, 'Assertion')({
                 this.invoqued = name;
                 this.expected = args;
                 this.notify(assertFn.apply(this, args));
-                return this;
+                return null;
             };
 
             return this;
@@ -507,8 +503,8 @@ Module(Tellurium, 'Context')({
                 this.setupCode.run();
             } else {
                 for (i = 0; i < this.children.length; i += 1) {
-                    if (this.children[i] instanceof Tellurium.Specification || this.children[i] instanceof Tellurium.Description) {
-                        this.runBeforeEach(this.children[i], this);
+                    if (this.children[i] instanceof Tellurium.Specification) {
+                        this.runBeforeEach(this, this.children[i]);
                     }
                     this.children[i].run();
                 }
@@ -516,32 +512,32 @@ Module(Tellurium, 'Context')({
 
             return this;
         },
-        runBeforeEach       : function (target, context) {
+        runBeforeEach       : function (specification, context) {
             var i;
 
             context = context || this;
 
             if (this.parent && this.parent.runBeforeEach) {
-                this.parent.runBeforeEach(context, this.parent);
+                this.parent.runBeforeEach(specification, context);
             }
 
             for (i = 0; i < this.beforeEachPool.length; i += 1) {
-                this.beforeEachPool[i].call(target, target, context);
+                this.beforeEachPool[i].call(context, specification, context);
             }
 
             return this;
         },
-        runAfterEach        : function (target, context) {
+        runAfterEach        : function (context) {
             var i;
 
             context = context || this;
 
             if (this.parent && this.parent.runAfterEach) {
-                this.parent.runAfterEach(context, this.parent);
+                this.parent.runAfterEach(context);
             }
 
             for (i = 0; i < this.afterEachPool.length; i += 1) {
-                this.afterEachPool[i].call(target, target, context);
+                this.afterEachPool[i].call(context, context);
             }
 
             return this;
@@ -549,8 +545,8 @@ Module(Tellurium, 'Context')({
         childCompleted      : function (child) {
             this.completedChildren.push(child);
 
-            if (child instanceof Tellurium.Specification || child instanceof Tellurium.Description) {
-                this.runAfterEach(child, this);
+            if (child instanceof Tellurium.Specification) {
+                this.runAfterEach(child);
             }
 
             if (this.children.length === this.completedChildren.length) {
@@ -681,12 +677,6 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             return this;
         },
         assert          : function (actual) {
-
-            if (this.isCompleted === true) {
-                throw "called assert on a completed test";
-                return this;
-            }
-
             var assertion = new Tellurium.Assertion(actual, this);
             this.assertions.push(assertion);
             return assertion;
@@ -695,11 +685,6 @@ Class(Tellurium, 'Specification').includes(Tellurium.Stub.Factory, Tellurium.Spy
             return {};
         },
         completed       : function () {
-
-            if (this.isCompleted === true) {
-                throw "called completed more than once for test";
-                return this;
-            }
 
             this.isCompleted = true;
 
@@ -811,10 +796,15 @@ Class(Tellurium.Reporter, 'Firebug')({
             }
 
             if (assertion.status === assertion.STATUS_SUCCESS) {
-                console.info(assertion.label, assertion.actual, not, assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '');
+                console.info(assertion.actual, not, assertion.invoqued, ' ', assertion.expected || '');
             } else if (assertion.status === assertion.STATUS_FAIL) {
-                console.error(assertion.label, assertion.actual, not, assertion.invoqued, ' ', (assertion.expected) ? assertion.expected : '');
+                console.error(assertion.actual, not, assertion.invoqued, ' ', assertion.expected || '');
             }
         }
     }
 });
+
+/* Export Tellurium */
+global.Tellurium = Tellurium;
+
+}(typeof window  === 'undefined' ? exports : window));
